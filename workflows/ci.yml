@@ -1,0 +1,64 @@
+name: CI VueloCredi
+
+on:
+  push:
+    branches: [ "main", "feature-admin" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: revenatium
+          POSTGRES_DB: vuelocredi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Instalar Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Instalar dependencias
+      run: npm install
+
+    - name: Esperar a PostgreSQL
+      run: |
+        for i in {1..10}; do
+          nc -z localhost 5432 && echo "DB lista" && exit 0
+          echo "Esperando DB..."
+          sleep 2
+        done
+        exit 1
+
+    - name: Ejecutar script SQL
+      run: |
+        sudo apt-get install -y postgresql-client
+        psql -h localhost -U postgres -d vuelocredi -f backup.sql
+      env:
+        PGPASSWORD: revenatium
+
+    - name: Ejecutar servidor (test básico)
+      run: |
+        node server.js &
+        sleep 5
+        curl http://localhost:3000/vuelos
+
+    - name: Build Docker
+      run: docker build -t vuelocredi .
