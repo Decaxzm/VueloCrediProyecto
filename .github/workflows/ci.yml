@@ -28,10 +28,10 @@ jobs:
 
     steps:
     - name: Checkout código
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Instalar Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 18
 
@@ -54,11 +54,20 @@ jobs:
       env:
         PGPASSWORD: revenatium
 
-    - name: Ejecutar servidor (test básico)
+    - name: Ejecutar servidor
       run: |
         node server.js &
-        sleep 5
-        curl http://localhost:3000/vuelos
+        sleep 10
+      env:
+        DB_HOST: localhost
+        DB_USER: postgres
+        DB_PASSWORD: revenatium
+        DB_NAME: vuelocredi
+        DB_PORT: 5432
+
+    - name: Test endpoint
+      run: |
+        curl --fail http://localhost:3000/vuelos
 
     - name: Build Docker
       run: docker build -t vuelocredi .
