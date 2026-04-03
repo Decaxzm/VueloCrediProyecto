@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Admin - VueloCredi</title>
+
+<style>
+body {
+  background: #0a0f2c;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: auto;
+  margin-top: 40px;
+  background: rgba(255,255,255,0.1);
+  padding: 25px;
+  border-radius: 12px;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+/* TABLA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: white;
+  color: black;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #0072ff;
+  color: white;
+}
+
+tr:hover {
+  background: #f1f1f1;
+}
+
+/* BOTONES */
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-delete {
+  background: #ff4d4d;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #cc0000;
+}
+
+.btn-main {
+  background: #00c6ff;
+  margin-bottom: 15px;
+}
+
+.btn-main:hover {
+  background: #00a6d6;
+}
+
+/* FORM */
+input, select {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 300px;
+  border-radius: 6px;
+  border: none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Panel Administrador</h1>
+
+<button class="btn-main" onclick="cargarPedidos()">Cargar pedidos</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Usuario</th>
+      <th>Vuelo</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody id="tablaPedidos"></tbody>
+</table>
+
+<h2>Crear nuevo pedido</h2>
+
+<input type="text" id="usuario" placeholder="Nombre del usuario">
+<select id="vuelo"></select>
+<button class="btn-main" onclick="crearPedido()">Agregar pedido</button>
+
+</div>
+
+<script>
+
+// 🔒 protección básica
+if (localStorage.getItem("rol") !== "admin") {
+  window.location.href = "login.html";
+}
+
+// 🔹 cargar pedidos
+function cargarPedidos() {
+  fetch('/pedidos')
+  .then(res => res.json())
+  .then(data => {
+    const tabla = document.getElementById('tablaPedidos');
+    tabla.innerHTML = "";
+
+    data.forEach(p => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${p.id}</td>
+        <td>${p.usuario}</td>
+        <td>${p.vuelo_id}</td>
+        <td>
+          <button class="btn-delete" onclick="eliminar(${p.id})">
+            Eliminar
+          </button>
+        </td>
+      `;
+      tabla.appendChild(row);
+    });
+  });
+}
+
+// 🔹 eliminar pedido
+function eliminar(id) {
+  fetch('/pedidos/' + id, { method: 'DELETE' })
+  .then(() => {
+    alert("Pedido eliminado");
+    cargarPedidos();
+  });
+}
+
+// 🔹 cargar vuelos en select
+fetch('/vuelos')
+.then(res => res.json())
+.then(data => {
+  const select = document.getElementById('vuelo');
+
+  data.forEach(v => {
+    const option = document.createElement('option');
+    option.value = v.id;
+    option.textContent = `${v.origen} → ${v.destino}`;
+    select.appendChild(option);
+  });
+});
+
+// 🔹 crear pedido
+function crearPedido() {
+  fetch('/pedidos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      usuario: document.getElementById('usuario').value,
+      vuelo_id: document.getElementById('vuelo').value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    cargarPedidos();
+  });
+}
+
+</script>
+
+</body>
+</html>

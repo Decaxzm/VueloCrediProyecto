@@ -15,6 +15,18 @@ const result = await pool.query('SELECT * FROM vuelos');
 res.json(result.rows);
 });
 
+app.delete('/pedidos/:id', async (req, res) => {
+  const { id } = req.params;
+
+  await pool.query('DELETE FROM pedidos WHERE id = $1', [id]);
+
+  res.json({ message: 'Pedido eliminado' });
+});
+
+app.get('/pedidos', async (req, res) => {
+  const result = await pool.query('SELECT * FROM pedidos');
+  res.json(result.rows);
+});
 
 app.post('/pedidos', async (req, res) => {
 const { usuario, vuelo_id } = req.body;
