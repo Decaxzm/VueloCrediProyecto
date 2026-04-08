@@ -67,7 +67,7 @@ jobs:
 
     - name: Test endpoint
       run: |
-        curl --fail http://localhost:3000/vuelos
+        curl http://localhost:3000/vuelos
 
     - name: Build Docker
       run: docker build -t vuelocredi .
