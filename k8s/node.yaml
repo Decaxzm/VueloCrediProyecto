@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node
+        image: vuelocredi
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          value: "revenatium"
+        - name: DB_NAME
+          value: "vuelocredi"
+        - name: DB_PORT
+          value: "5432"
